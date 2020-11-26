@@ -1,23 +1,24 @@
 # Progressons
 
-A simple progress bar on one line.
+Display a progress bar on one line.
 
+    [1437/1437]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[100%]
 
-Support for real and dumb terminal windows:
-
-On the terminal, it correctly shows progress. On a dumb terminal (Emacs' default shell), it doesn't try to erase the previous step because (it's messy), but it shows one progress line per step.
+- [X] Support for real and dumb terminal windows
+  - on the terminal, it correctly updates progress. On a dumb terminal (Emacs' default shell), it doesn't try to erase the previous step (because it's messy), but it shows one progress line per step (yeah we could integrate it more).
 
 
 ## Usage
 
-Instantiate with `progressbar data` and call `(step!)` at each iteration.
+Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
+
+(`data` must comply to `length`)
 
 ~~~lisp
 (loop for elt in (progressbar (list 1 2 3 4 5))
    do (do-something-with elt)
       (step!))
 ~~~
-
 
 Manual demo:
 
@@ -36,7 +37,7 @@ CL-USER>  (step!)
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[100]
 ```
 
-How to get rid off the need of calling `step!` ?
+We'd like to remove the need of calling `(step!)` eventually.
 
 
 ## Do it yourself

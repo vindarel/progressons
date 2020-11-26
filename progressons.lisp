@@ -67,28 +67,33 @@ Usage:
 
   (values (steps-counter obj)
           (progress-percent obj)
-          (progress-finished obj)))
+          (progress-finished obj))))
 
 (defmethod print-step ((obj progress) &key (stream t))
   "Print the bar at the right length."
   ;; composed of the bar indicator + whitespace + percent indicator.
-  (format stream "~a~a[~a]"
-          (make-string (current-width obj)
-                       :initial-element #\>)
-          (make-string (- (progress-width obj)
-                          (current-width obj))
-                       :initial-element #\ )
-          (current-percent obj))
+  (let ((data-digits (length (format nil "~a" (progressons::progress-length obj)))))
+    (format stream "[~v@a/~v@a]~a~a[~3@a%]"
+            data-digits
+            (progressons::steps-counter obj)
+            data-digits
+            (progressons::progress-length obj)
+            (make-string (current-width obj)
+                         :initial-element #\>)
+            (make-string (- (progress-width obj)
+                            (current-width obj))
+                         :initial-element #\ )
+            (current-percent obj))
 
-  (if (tty-p)
-      ;; Only erase the line on real terminals.
-      ;; Otherwise, Emacs' output is messy
-      ;; (it prints ^M without erasing the line).
-      ;; We could handle the whole progress bar differently, like printing only the steps in a row, without the %.
-      (write-char #\return)
-      ;; if we don't print Return, print a new line.
-      (terpri))
-  (force-output))
+    (if (tty-p)
+        ;; Only erase the line on real terminals.
+        ;; Otherwise, Emacs' output is messy
+        ;; (it prints ^M without erasing the line).
+        ;; We could handle the whole progress bar differently, like printing only the steps in a row, without the %.
+        (write-char #\return)
+        ;; if we don't print Return, print a new line.
+        (terpri))
+    (force-output)))
 
 (defun progress ()
   "Only works on the terminal."
