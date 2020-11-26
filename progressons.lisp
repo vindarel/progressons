@@ -37,7 +37,7 @@ Usage:
   (length (progress-data obj)))
 
 (defun make-progress (data)
-   (make-instance 'progress :data data))
+  (setf *progress* (make-instance 'progress :data data)))
 
 (defmethod initialize-instance :after ((obj progress) &rest initargs &key &allow-other-keys)
   (declare (ignorable initargs))
@@ -61,13 +61,39 @@ Usage:
   (>= (steps-counter obj)
       (progress-length obj)))
 
-(defmethod step ((obj progress))
+(defun step! (&optional (obj *progress*))
+  "Increment and print the bar."
   (unless (progress-finished obj)
-    (incf (steps-counter obj)))
-  (print-step obj)
+    (incf (steps-counter obj))
+
+    ;; print a new step:
+    ;; erase the last one, print anew.
+    (print-step obj)
+
   (values (steps-counter obj)
           (progress-percent obj)
           (progress-finished obj)))
+
+(defmethod print-step ((obj progress) &key (stream t))
+  "Print the bar at the right length."
+  ;; composed of the bar indicator + whitespace + percent indicator.
+  (format stream "~a~a[~a]"
+          (make-string (current-width obj)
+                       :initial-element #\>)
+          (make-string (- (progress-width obj)
+                          (current-width obj))
+                       :initial-element #\ )
+          (current-percent obj))
+
+  (if (tty-p)
+      ;; Only erase the line on real terminals.
+      ;; Otherwise, Emacs' output is messy
+      ;; (it prints ^M without erasing the line).
+      ;; We could handle the whole progress bar differently, like printing only the steps in a row, without the %.
+      (write-char #\return)
+      ;; if we don't print Return, print a new line.
+      (terpri))
+  (force-output))
 
 (defun progress ()
   "Only works on the terminal."
@@ -92,20 +118,12 @@ Usage:
             (percent-width obj))))
 
 (defmethod reinit ((obj progress))
-  (setf (steps-counter 0)))
-
-(defmethod print-step ((obj progress) &key (stream t))
-  "Print the bar at the right length."
-  ;; composed of the bar indicator + whitespace + percent indicator.
-  (format stream "~a~a[~a]"
-          (make-string (current-width obj)
-                       :initial-element #\>)
-          (make-string (- (progress-width obj)
-                          (current-width obj))
-                       :initial-element #\ )
-          (current-percent obj)))
+  (setf (steps-counter obj) 0))
 
 (defun progressbar (data)
-  (loop for elt in (progress-data (make-progress data))
-     do (sleep 0.1)
-     finally (print-step *progress*)))
+  "Create a progress bar with this data. Return the data, so we can iterate over it.
+  At the end of each iteration, you must call (step!) to print the progress."
+  (setf *tty-p* (tty-p))
+  (make-progress data)
+  (values data
+          *progress*))
