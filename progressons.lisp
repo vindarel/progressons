@@ -1,4 +1,17 @@
-(shadow 'step)
+(defpackage progressons
+  (:use :cl)
+  (:export :progressbar
+           :step!))
+
+#|
+Usage:
+
+(loop for line in (progressbar (list 1 2 3 4 5))
+   do (format t "~&")
+      (step!))
+|#
+
+(in-package #:progressons)
 
 (defparameter *progress* nil
   "the current progress bar.")
