@@ -10,6 +10,4 @@
   (when (and (not force)
              (boundp '*tty-p*))
     (return-from tty-p *tty-p*))
-  (let ((test (with-output-to-string (s)
-                (uiop:run-program "echo [ -n \"$TERM\" ]" :output s))))
-    (setf *tty-p* (not (str:containsp "dumb" test)))))
+  (setf *tty-p* (not (equalp "dumb" (uiop:getenv "TERM")))))
