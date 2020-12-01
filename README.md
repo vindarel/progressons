@@ -5,7 +5,7 @@ Display a progress bar on one line.
     [1437/1437]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[100%]
 
 - [X] Support for real and dumb terminal windows
-  - on the terminal, it correctly updates progress. On a dumb terminal (Emacs' default shell), it doesn't try to erase the previous step (because it's messy), but it shows one progress line per step (yeah we could integrate it more).
+  - on the terminal, it correctly updates the progress percent and the number of items. On a dumb terminal like Emacs Slime, it can't erase the previous step to update the numbers, so it simply prints one progress indicator after the other, still on one line.
 
 
 ## Usage
@@ -17,6 +17,7 @@ Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
 ~~~lisp
 (loop for elt in (progressbar (list 1 2 3 4 5))
    do (do-something-with elt)
+      (sleep 0.1)
       (step!))
 ~~~
 

@@ -78,18 +78,40 @@ Usage:
              (zerop (steps-counter obj)))
     (format stream "[0/~a]" (progress-length obj))))
 
-
-(defmethod print-step-dumb ((obj progress) &key (stream t))
-  (format stream "~a" (make-string
-                       ;; If we have more than a hundred elements,
-                       ;; we can't print a step of size < 1.
-                       ;; We'll draw one character, even if we can't respect the 100 characters line limit.
-                       ;; We don't have this limitation on a real terminal.
-                       (or (plusp (round (step-width obj)))
-                           1)
-                       :initial-element #\>))
-  (when (progress-finished obj)
-    (format stream "[100%]~&")))
+(let ((sub-steps-counter 0)
+      sub-steps-for-one-progress)
+  ;; If we have more than a hundred elements,
+  ;; we can't print a step of size < 1.
+  ;; We count how many items are required to print one progress character.
+  ;; We don't have this limitation on a real terminal.
+  (defmethod print-step-dumb ((obj progress) &key (stream t))
+    "Print the progress step in a dumb terminal (like Emacs Slime).
+    We can't erase a line (it prints the ^M character instead), so we can't update
+    the percentage and the ratio of done items. We print progress indicators in a row,
+    one after the other, and we print the percent in the end."
+    (if (> (step-width obj) 1)
+        ;; easy case, the number of elements we have to draw the progress for
+        ;; is smaller than 100, our line size.
+        (format stream "~a" (make-string
+                             (step-width obj)
+                             :initial-element #\>))
+        ;; The elements to draw progress for are more than 100 and our terminal is dubm:
+        ;; we can't print a tiny step of width less than a character, so we print a progress
+        ;; character every n step.
+        (progn
+          (unless sub-steps-for-one-progress
+            ;; if step-width is 80/1100, we'll increment a counter
+            ;; until it reaches 1100/80 = 13.75 rounded to 14, and we print one progress char.
+            (setf sub-steps-for-one-progress (round (/ 1 (step-width obj)))))
+          (if (>= sub-steps-counter sub-steps-for-one-progress)
+              (progn
+                (format stream ">")
+                (setf sub-steps-counter 0))
+              (incf sub-steps-counter))))
+    (when (progress-finished obj)
+      (format stream "[100%]~&")
+      (setf sub-steps-counter 0
+            sub-steps-for-one-progress nil))))
 
 (defmethod print-step ((obj progress) &key (stream t))
   "Print the bar at the right length."
