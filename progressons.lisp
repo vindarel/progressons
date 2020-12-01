@@ -2,7 +2,7 @@
 Usage:
 
 (loop for line in (progressbar (list 1 2 3 4 5))
-   do (format t "~&")
+   do (sleep 0.1)
       (step!))
 |#
 
@@ -58,16 +58,38 @@ Usage:
 
 (defun step! (&optional (obj *progress*))
   "Increment and print the bar."
+  (print-opening obj)
   (unless (progress-finished obj)
     (incf (steps-counter obj))
 
     ;; print a new step:
     ;; erase the last one, print anew.
-    (print-step obj)
+    ;; (print-step obj)
+    (if (tty-p)
+        (print-step obj)
+        (print-step-dumb obj))
 
   (values (steps-counter obj)
           (progress-percent obj)
           (progress-finished obj))))
+
+(defmethod print-opening ((obj progress) &key (stream t))
+  (when (and (not (tty-p))
+             (zerop (steps-counter obj)))
+    (format stream "[0/~a]" (progress-length obj))))
+
+
+(defmethod print-step-dumb ((obj progress) &key (stream t))
+  (format stream "~a" (make-string
+                       ;; If we have more than a hundred elements,
+                       ;; we can't print a step of size < 1.
+                       ;; We'll draw one character, even if we can't respect the 100 characters line limit.
+                       ;; We don't have this limitation on a real terminal.
+                       (or (plusp (round (step-width obj)))
+                           1)
+                       :initial-element #\>))
+  (when (progress-finished obj)
+    (format stream "[100%]~&")))
 
 (defmethod print-step ((obj progress) &key (stream t))
   "Print the bar at the right length."
