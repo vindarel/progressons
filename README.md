@@ -21,6 +21,10 @@ Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
       (step!))
 ~~~
 
+Run the demo:
+
+    sbcl --load demo.lisp
+
 Manual demo:
 
 ```
