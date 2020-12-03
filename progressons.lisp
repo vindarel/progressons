@@ -129,7 +129,8 @@ Usage:
                          :initial-element #\ )
             (current-percent obj))
 
-    (if (tty-p)
+    (if (and (tty-p)
+             (not (progress-finished obj)))
         ;; Only erase the line on real terminals.
         ;; Otherwise, Emacs' output is messy
         ;; (it prints ^M without erasing the line).
