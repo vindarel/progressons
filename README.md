@@ -8,7 +8,7 @@ Display a progress bar on one line.
 - [X] Support for real and dumb terminal windows
   - on the terminal, it correctly updates the progress percent and the number of items. On a dumb terminal like Emacs Slime, it can't erase the previous step to update the numbers, so it simply prints one progress indicator after the other, still on one line.
 
-Status: usable for simple cases, work in progress.
+Status: usable for simple cases, work in progress, the API might change.
 
 
 ## Usage

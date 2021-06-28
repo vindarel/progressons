@@ -136,12 +136,12 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
 (defmethod print-step ((obj progress) &key (stream t))
   "Print the bar at the right length."
   ;; composed of the bar indicator + whitespace + percent indicator.
-  (let ((data-digits (length (format nil "~a" (progressons::progress-length obj)))))
+  (let ((data-digits (length (format nil "~a" (progress-length obj)))))
     (format stream "[~v@a/~v@a]~a~a[~3@a%]"
             data-digits
-            (progressons::steps-counter obj)
+            (steps-counter obj)
             data-digits
-            (progressons::progress-length obj)
+            (progress-length obj)
             (make-string (current-width obj)
                          :initial-element (progress-fill-character obj))
             (make-string (- (progress-width obj)
@@ -155,7 +155,7 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
         ;; Otherwise, Emacs' output is messy
         ;; (it prints ^M without erasing the line).
         ;; We could handle the whole progress bar differently, like printing only the steps in a row, without the %.
-        (write-char #\return)
+        (write-char #\Return)
         ;; if we don't print Return, print a new line.
         (terpri))
     (force-output)))
@@ -190,5 +190,5 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
   At the end of each iteration, you must call (step!) to print the progress."
   (setf *tty-p* (tty-p))
   (make-progress data)
-  (values data
+  (values (progress-data *progress*)
           *progress*))
