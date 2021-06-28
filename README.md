@@ -2,17 +2,19 @@
 
 Display a progress bar on one line.
 
+    [0/5]████████████████████████████████████████████████████████████████████████████████[100%]
+
     [1437/1437]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[100%]
 
 - [X] Support for real and dumb terminal windows
   - on the terminal, it correctly updates the progress percent and the number of items. On a dumb terminal like Emacs Slime, it can't erase the previous step to update the numbers, so it simply prints one progress indicator after the other, still on one line.
 
+Status: usable for simple cases, work in progress.
+
 
 ## Usage
 
 Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
-
-(`data` must comply to `length`)
 
 ~~~lisp
 (loop for elt in (progressbar (list 1 2 3 4 5))
@@ -20,6 +22,8 @@ Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
       (sleep 0.1)
       (step!))
 ~~~
+
+Here `data` should comply to `length`. See also `make-progress`.
 
 Run the demo:
 

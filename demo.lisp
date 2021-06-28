@@ -6,5 +6,13 @@
 
 (loop for elt in (progressbar (loop for i from 1 to 200 collect i)) do (sleep 0.005) (step!))
 
+;; (experimetal)
+;; make-progress accepts an integer.
+;; It creates a list of that length. Avoid a very big number.
+(let ((*progress* (make-progress 5)))
+  (dotimes (i 5)
+    do (sleep 0.3)
+    (step!)))
+
 (when (termp:termp)
   (termp:quit))

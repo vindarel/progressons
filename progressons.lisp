@@ -31,8 +31,17 @@ Usage:
 (defmethod progress-length ((obj progress))
   (length (progress-data obj)))
 
-(defun make-progress (data)
-  (setf *progress* (make-instance 'progress :data data)))
+(defun make-progress (data &key fill-character)
+  "A more manual way to create a progressbar than `progressbar'.
+
+Experimental: if DATA is an integer, it creates a list of that length with `make-list'."
+  (typecase data
+    (integer
+     (setf *progress* (make-instance 'progress
+                                     :data (make-list data :initial-element #\0)
+                                     :fill-character fill-character)))
+    (t
+     (setf *progress* (make-instance 'progress :data data :fill-character fill-character)))))
 
 (defmethod initialize-instance :after ((obj progress) &rest initargs &key &allow-other-keys)
   (declare (ignorable initargs))
