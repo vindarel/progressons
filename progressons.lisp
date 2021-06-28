@@ -26,7 +26,15 @@ Usage:
                   :documentation "A counter to increment each time we increase the bar.")
    (finished :accessor progress-finished
              :initform nil
-             :documentation "Boolean. T after 100% of completion.")))
+             :documentation "Boolean. T after 100% of completion.")
+   ;; Style, preferences.
+   (fill-character :accessor progress-fill-character
+                   :initarg :fill-character
+                   :initform #\FULL_BLOCK)
+   (default-fill-character :accessor default-fill-character
+     :allocation :class
+     :initform #\FULL_BLOCK)            ; = █
+   ))
 
 (defmethod progress-length ((obj progress))
   (length (progress-data obj)))
@@ -45,7 +53,10 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
 
 (defmethod initialize-instance :after ((obj progress) &rest initargs &key &allow-other-keys)
   (declare (ignorable initargs))
-  (with-slots (step-width percent-width) obj
+  (with-slots (step-width percent-width fill-character) obj
+    (unless fill-character
+      ;; mmh not the best way to accept a key param on the constructor and ensure it's set here.
+      (setf fill-character (default-fill-character obj)))
     (setf step-width (/ (progress-width obj)
                         (progress-length obj)))
     (setf percent-width (/ 100
@@ -103,7 +114,7 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
         ;; is smaller than 100, our line size.
         (format stream "~a" (make-string
                              (step-width obj)
-                             :initial-element #\>))
+                             :initial-element #\FULL_BLOCK))
         ;; The elements to draw progress for are more than 100 and our terminal is dubm:
         ;; we can't print a tiny step of width less than a character, so we print a progress
         ;; character every n step.
@@ -132,7 +143,7 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
             data-digits
             (progressons::progress-length obj)
             (make-string (current-width obj)
-                         :initial-element #\>)
+                         :initial-element (progress-fill-character obj))
             (make-string (- (progress-width obj)
                             (current-width obj))
                          :initial-element #\ )
