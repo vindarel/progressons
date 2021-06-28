@@ -146,7 +146,7 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
                          :initial-element (progress-fill-character obj))
             (make-string (- (progress-width obj)
                             (current-width obj))
-                         :initial-element #\ )
+                         :initial-element #\-)
             (current-percent obj))
 
     (if (and (tty-p)
