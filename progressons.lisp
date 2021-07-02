@@ -34,12 +34,23 @@ Usage:
    (default-fill-character :accessor default-fill-character
      :allocation :class
      :initform #\FULL_BLOCK)            ; = █
+   (rainbow :accessor progress-rainbow
+            :initarg :rainbow
+            :initform nil
+            :documentation "If non-nil, print each step in a different color. It uses the dumb print method (it doesn't update the progress percent at the beginning of the line).")
    ))
+
+(defparameter *rainbow-steps* nil
+  "If non-nil, print each step character in a random color.
+
+You should rather create a progressbar with this preference enabled:
+
+   (progressbar :rainbow t)")
 
 (defmethod progress-length ((obj progress))
   (length (progress-data obj)))
 
-(defun make-progress (data &key fill-character)
+(defun make-progress (data &key fill-character rainbow)
   "A more manual way to create a progressbar than `progressbar'.
 
 Experimental: if DATA is an integer, it creates a list of that length with `make-list'."
@@ -47,9 +58,12 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
     (integer
      (setf *progress* (make-instance 'progress
                                      :data (make-list data :initial-element #\0)
-                                     :fill-character fill-character)))
+                                     :fill-character fill-character
+                                     :rainbow rainbow)))
     (t
-     (setf *progress* (make-instance 'progress :data data :fill-character fill-character)))))
+     (setf *progress* (make-instance 'progress :data data
+                                     :fill-character fill-character
+                                     :rainbow rainbow)))))
 
 (defmethod initialize-instance :after ((obj progress) &rest initargs &key &allow-other-keys)
   (declare (ignorable initargs))
@@ -85,9 +99,17 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
     ;; print a new step:
     ;; erase the last one, print anew.
     ;; (print-step obj)
-    (if (tty-p)
-        (print-step obj)
-        (print-step-dumb obj))
+    (cond
+      ((or (progress-rainbow obj)
+           *rainbow-steps*)
+       (print-rainbow-step obj))
+      ((tty-p)
+       (print-step obj))
+      (t
+       (print-step-dumb obj)))
+    ;; (if (tty-p)
+    ;;     (print-step obj)
+    ;;     (print-step-dumb obj))
 
   (values (steps-counter obj)
           (progress-percent obj)
@@ -98,23 +120,46 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
              (zerop (steps-counter obj)))
     (format stream "[0/~a]" (progress-length obj))))
 
+(defun make-string-with-random-color (width &key (initial-element #\FULL_BLOCK) print!)
+  "Return a string with a random color (amongst the 8 basic ones)."
+  (let* ((nb-colors 8)
+         (colors cl-ansi-text::+cl-colors-basic-colors+)
+         ;; see all X11 colors in cl-colors2:*x11-colors-list*
+         (color (elt colors (random nb-colors)))
+         (result (with-output-to-string (s)
+                   (cl-ansi-text:with-color (color :stream s)
+                     (format s "~a" (make-string
+                                     width
+                                     :initial-element initial-element))))))
+    (if print!
+      (print result)
+      result)))
+
 (let ((sub-steps-counter 0)
       sub-steps-for-one-progress)
   ;; If we have more than a hundred elements,
   ;; we can't print a step of size < 1.
   ;; We count how many items are required to print one progress character.
   ;; We don't have this limitation on a real terminal.
+
   (defmethod print-step-dumb ((obj progress) &key (stream t))
     "Print the progress step in a dumb terminal (like Emacs Slime).
-    We can't erase a line (it prints the ^M character instead), so we can't update
-    the percentage and the ratio of done items. We print progress indicators in a row,
-    one after the other, and we print the percent in the end."
+We can't erase a line (it prints the ^M character instead), so we can't update
+the percentage and the ratio of done items. We print progress indicators in a row,
+one after the other, and we print the percent in the end."
     (if (> (step-width obj) 1)
         ;; easy case, the number of elements we have to draw the progress for
         ;; is smaller than 100, our line size.
-        (format stream "~a" (make-string
-                             (step-width obj)
-                             :initial-element #\FULL_BLOCK))
+        (format stream "~a"
+                (if *rainbow-steps*
+                    ;; random color…
+                    (make-string-with-random-color
+                     (floor (step-width obj)) ;; a step of 4/3 -> 1
+                     :initial-element #\FULL_BLOCK)
+                    ;; normal mode.
+                    (make-string
+                     (floor (step-width obj))
+                     :initial-element #\FULL_BLOCK)))
         ;; The elements to draw progress for are more than 100 and our terminal is dubm:
         ;; we can't print a tiny step of width less than a character, so we print a progress
         ;; character every n step.
@@ -125,13 +170,23 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
             (setf sub-steps-for-one-progress (round (/ 1 (step-width obj)))))
           (if (>= sub-steps-counter sub-steps-for-one-progress)
               (progn
-                (format stream ">")
+                (format stream "~a"
+                        (if *rainbow-steps*
+                            (make-string-with-random-color
+                             1
+                             :initial-element (progress-fill-character obj))
+                            (progress-fill-character obj)))
                 (setf sub-steps-counter 0))
               (incf sub-steps-counter))))
     (when (progress-finished obj)
       (format stream "[100%]~&")
       (setf sub-steps-counter 0
             sub-steps-for-one-progress nil))))
+
+(defmethod print-rainbow-step ((obj progress) &key (stream t))
+  "Print each bar in a different color."
+  (let ((*rainbow-steps* t))
+    (print-step-dumb obj :stream stream)))
 
 (defmethod print-step ((obj progress) &key (stream t))
   "Print the bar at the right length."
@@ -185,10 +240,12 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
 (defmethod reinit ((obj progress))
   (setf (steps-counter obj) 0))
 
-(defun progressbar (data)
+(defun progressbar (data &key rainbow)
   "Create a progress bar with this data. Return the data, so we can iterate over it.
-  At the end of each iteration, you must call (step!) to print the progress."
+At the end of each iteration, you must call (step!) to print the progress.
+
+If `rainbow' is non-nil, print the steps in a random color."
   (setf *tty-p* (tty-p))
-  (make-progress data)
+  (make-progress data :rainbow rainbow)
   (values (progress-data *progress*)
           *progress*))

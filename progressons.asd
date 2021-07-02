@@ -4,7 +4,8 @@
   :version "0.1"
   :author "vindarel"
   :license "MIT"
-  :depends-on ("str")
+  :depends-on ("str"
+               "cl-ansi-text")
   :components ((:file "packages")
                (:file "utils")
                (:file "termp")

@@ -4,12 +4,10 @@ Display a progress bar on one line.
 
     [1437/1437]██████████████████████████████████████████████████████████████████████████[100%]
 
-
 - [X] Support for real and dumb terminal windows
   - on the terminal, it correctly updates the progress percent and the number of items. On a dumb terminal like Emacs Slime, it can't erase the previous step to update the numbers, so it simply prints one progress indicator after the other, still on one line.
 
 Status: usable for simple cases, work in progress, the API might change.
-
 
 ## Usage
 
@@ -23,6 +21,11 @@ Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
 ~~~
 
 Here `data` should comply to `length`. See also `make-progress`.
+
+Use `(progressbar data :rainbow t)` for some colors:
+
+![](progressons-colorful.png)
+
 
 Run the demo:
 
