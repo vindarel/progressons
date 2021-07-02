@@ -7,6 +7,7 @@
   :depends-on ("str")
   :components ((:file "packages")
                (:file "utils")
+               (:file "termp")
                (:file "progressons"))
 
   :description "Display a progress bar on one line."

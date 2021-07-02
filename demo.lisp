@@ -14,5 +14,5 @@
     do (sleep 0.3)
     (step!)))
 
-(when (termp:termp)
-  (termp:quit))
+(when (termp)
+  (uiop:quit))
