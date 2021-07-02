@@ -26,6 +26,13 @@ Use `(progressbar data :rainbow t)` for some colors:
 
 ![](progressons-colorful.png)
 
+Use the bar character you want with `:bar ">"` (a character or a string of one element):
+
+~~~lisp
+(loop for line in (progressbar (list 1 2 3 4 5) :bar ">") do (sleep 0.3) (step!))
+
+[0/5]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[100%]
+~~~
 
 Run the demo:
 

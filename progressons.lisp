@@ -155,11 +155,11 @@ one after the other, and we print the percent in the end."
                     ;; random color…
                     (make-string-with-random-color
                      (floor (step-width obj)) ;; a step of 4/3 -> 1
-                     :initial-element #\FULL_BLOCK)
+                     :initial-element (progress-fill-character obj))
                     ;; normal mode.
                     (make-string
                      (floor (step-width obj))
-                     :initial-element #\FULL_BLOCK)))
+                     :initial-element (progress-fill-character obj))))
         ;; The elements to draw progress for are more than 100 and our terminal is dubm:
         ;; we can't print a tiny step of width less than a character, so we print a progress
         ;; character every n step.
@@ -240,12 +240,16 @@ one after the other, and we print the percent in the end."
 (defmethod reinit ((obj progress))
   (setf (steps-counter obj) 0))
 
-(defun progressbar (data &key rainbow)
+(defun progressbar (data &key bar rainbow)
   "Create a progress bar with this data. Return the data, so we can iterate over it.
 At the end of each iteration, you must call (step!) to print the progress.
 
 If `rainbow' is non-nil, print the steps in a random color."
   (setf *tty-p* (tty-p))
-  (make-progress data :rainbow rainbow)
+  (make-progress data
+                 :rainbow rainbow
+                 :fill-character (if (stringp bar)
+                                     (character bar)
+                                     bar))
   (values (progress-data *progress*)
           *progress*))
