@@ -107,9 +107,6 @@ Experimental: if DATA is an integer, it creates a list of that length with `make
        (print-step obj))
       (t
        (print-step-dumb obj)))
-    ;; (if (tty-p)
-    ;;     (print-step obj)
-    ;;     (print-step-dumb obj))
 
   (values (steps-counter obj)
           (progress-percent obj)
@@ -154,6 +151,7 @@ one after the other, and we print the percent in the end."
                 (if *rainbow-steps*
                     ;; random color…
                     (make-string-with-random-color
+                     ;XXX: the floor makes the bar shorter?
                      (floor (step-width obj)) ;; a step of 4/3 -> 1
                      :initial-element (progress-fill-character obj))
                     ;; normal mode.
@@ -178,6 +176,7 @@ one after the other, and we print the percent in the end."
                             (progress-fill-character obj)))
                 (setf sub-steps-counter 0))
               (incf sub-steps-counter))))
+
     (when (progress-finished obj)
       (format stream "[100%]~&")
       (setf sub-steps-counter 0
@@ -185,6 +184,8 @@ one after the other, and we print the percent in the end."
 
 (defmethod print-rainbow-step ((obj progress) &key (stream t))
   "Print each bar in a different color."
+  ;; To make it work on a real terminal (to see the progress),
+  ;; we should remember the previously printed string, and add one character to it.
   (let ((*rainbow-steps* t))
     (print-step-dumb obj :stream stream)))
 

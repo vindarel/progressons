@@ -20,11 +20,7 @@ Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
       (step!))
 ~~~
 
-Here `data` should comply to `length`. See also `make-progress`.
-
-Use `(progressbar data :rainbow t)` for some colors:
-
-![](progressons-colorful.png)
+Here `data` should comply to `length` or be an integer, to specify its length (experimental). See also `make-progress`.
 
 Use the bar character you want with `:bar ">"` (a character or a string of one element):
 
@@ -34,11 +30,17 @@ Use the bar character you want with `:bar ">"` (a character or a string of one e
 [0/5]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[100%]
 ~~~
 
+Use `(progressbar data :rainbow t)` for some colors:
+
+![](progressons-colorful.png)
+
+but… that works only on a dumb terminal, too bad (we don't see the progress on a real terminal).
+
 Run the demo:
 
     sbcl --load demo.lisp
 
-Manual demo:
+Manual progress:
 
 ```
 CL-USER> (progressbar (list 1 2 3 4 5))
@@ -54,6 +56,8 @@ CL-USER>  (step!)
 CL-USER>  (step!)
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[100]
 ```
+
+`step!` takes an optional progressbar object as argument.
 
 We'd like to remove the need of calling `(step!)` eventually.
 
