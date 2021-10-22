@@ -48,7 +48,13 @@ You should rather create a progressbar with this preference enabled:
    (progressbar :rainbow t)")
 
 (defmethod progress-length ((obj progress))
-  (length (progress-data obj)))
+  (typecase (progress-data obj)
+    (integer
+     (progress-data obj))
+    (cons
+     (length (progress-data obj)))
+    (t
+     (error "The progress bar data of type ~a is not valid." (type-of (progress-data obj))))))
 
 (defun make-progress (data &key fill-character rainbow)
   "A more manual way to create a progressbar than `progressbar'.

@@ -8,6 +8,7 @@
 
 (terpri)
 ;; rainbow mode, random colors
+;; Only shows progress on Emacs.
 (loop for line in (progressbar 60 :rainbow t) do (sleep 0.01) (step!))
 
 (terpri)
@@ -27,7 +28,7 @@
 (terpri)
 ;; (experimetal)
 ;; make-progress accepts an integer.
-;; It creates a list of that length. Avoid a very big number.
+(loop for line in (progressbar 40) do (sleep 0.05) (step!))
 (let ((*progress* (make-progress 5)))
   (dotimes (i 5)
     do (sleep 0.3)

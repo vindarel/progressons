@@ -20,7 +20,7 @@ Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
       (step!))
 ~~~
 
-Here `data` should comply to `length` or be an integer, to specify its length (experimental). See also `make-progress`.
+`data` is a list of data, or an integer specifying the number of iterations.
 
 Use the bar character you want with `:bar ">"` (a character or a string of one element):
 
@@ -39,6 +39,7 @@ but… that works only on a dumb terminal, too bad (we don't see the progress on
 Run the demo:
 
     sbcl --load demo.lisp
+    # aka make demo
 
 Manual progress:
 
