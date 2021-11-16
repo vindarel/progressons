@@ -139,28 +139,10 @@ You should rather create a progressbar with this preference enabled:
   ;; We count how many items are required to print one progress character.
   ;; We don't have this limitation on a real terminal.
 
-  (defmethod print-step-dumb ((obj progress) &key (stream t))
-    "Print the progress step in a dumb terminal (like Emacs Slime).
-We can't erase a line (it prints the ^M character instead), so we can't update
-the percentage and the ratio of done items. We print progress indicators in a row,
-one after the other, and we print the percent in the end."
+  (defun step-length (obj)
+    "Return the length (integer) of the new step string."
     (if (> (step-width obj) 1)
-        ;; easy case, the number of elements we have to draw the progress for
-        ;; is smaller than 100, our line size.
-        (format stream "~a"
-                (if *rainbow-steps*
-                    ;; random color…
-                    (make-string-with-random-color
-                     ;XXX: the floor makes the bar shorter?
-                     (floor (step-width obj)) ;; a step of 4/3 -> 1
-                     :initial-element (progress-fill-character obj))
-                    ;; normal mode.
-                    (make-string
-                     (floor (step-width obj))
-                     :initial-element (progress-fill-character obj))))
-        ;; The elements to draw progress for are more than 100 and our terminal is dubm:
-        ;; we can't print a tiny step of width less than a character, so we print a progress
-        ;; character every n step.
+        (floor (step-width obj))     ;XXX: the floor looses some width
         (progn
           (unless sub-steps-for-one-progress
             ;; if step-width is 80/1100, we'll increment a counter
@@ -168,14 +150,53 @@ one after the other, and we print the percent in the end."
             (setf sub-steps-for-one-progress (round (/ 1 (step-width obj)))))
           (if (>= sub-steps-counter sub-steps-for-one-progress)
               (progn
-                (format stream "~a"
-                        (if *rainbow-steps*
-                            (make-string-with-random-color
-                             1
-                             :initial-element (progress-fill-character obj))
-                            (progress-fill-character obj)))
-                (setf sub-steps-counter 0))
-              (incf sub-steps-counter))))
+                (setf sub-steps-counter 0)
+                0) ;; (explicitely show we return 0)
+              (progn
+                (incf sub-steps-counter)
+                1)))))
+
+  (defmethod print-step-dumb ((obj progress) &key (stream t))
+    "Print the progress step in a dumb terminal (like Emacs Slime).
+We can't erase a line (it prints the ^M character instead), so we can't update
+the percentage and the ratio of done items. We print progress indicators in a row,
+one after the other, and we print the percent in the end."
+    (let ((new-step "")
+          (new-step-length (step-length obj)))
+      (if (> new-step-length 1)
+          ;; easy case, the number of elements we have to draw the progress for
+          ;; is smaller than 100, our line size.
+                                        ;TODO: setf new step string
+          (progn
+            (format stream "~a"
+                    (if *rainbow-steps*
+                        ;; random color…
+                        (make-string-with-random-color
+                                        ;XXX: the floor makes the bar shorter?
+                         new-step-length    ;; a step of 4/3 -> 1
+                         :initial-element (progress-fill-character obj))
+                        ;; normal mode.
+                        (make-string
+                         new-step-length
+                         :initial-element (progress-fill-character obj)))))
+          ;; The elements to draw progress for are more than 100 and our terminal is dubm:
+          ;; we can't print a tiny step of width less than a character, so we print a progress
+          ;; character every n step.
+          (progn
+            (unless sub-steps-for-one-progress
+              ;; if step-width is 80/1100, we'll increment a counter
+              ;; until it reaches 1100/80 = 13.75 rounded to 14, and we print one progress char.
+              (setf sub-steps-for-one-progress (round (/ 1 (step-width obj)))))
+            (if (>= sub-steps-counter sub-steps-for-one-progress)
+                (progn
+                  (format stream "~a"
+                          (if *rainbow-steps*
+                              (make-string-with-random-color
+                               1
+                               :initial-element (progress-fill-character obj))
+                              (progress-fill-character obj)))
+                  (setf sub-steps-counter 0))
+                (incf sub-steps-counter)))))
 
     (when (progress-finished obj)
       (format stream "[100%]~&")
