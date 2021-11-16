@@ -59,17 +59,11 @@ You should rather create a progressbar with this preference enabled:
 (defun make-progress (data &key fill-character rainbow)
   "A more manual way to create a progressbar than `progressbar'.
 
-Experimental: if DATA is an integer, it creates a list of that length with `make-list'."
-  (typecase data
-    (integer
-     (setf *progress* (make-instance 'progress
-                                     :data (make-list data :initial-element #\0)
-                                     :fill-character fill-character
-                                     :rainbow rainbow)))
-    (t
-     (setf *progress* (make-instance 'progress :data data
-                                     :fill-character fill-character
-                                     :rainbow rainbow)))))
+  DATA can be a sequence or an integer."
+  (setf *progress* (make-instance 'progress
+                                  :data data
+                                  :fill-character fill-character
+                                  :rainbow rainbow)))
 
 (defmethod initialize-instance :after ((obj progress) &rest initargs &key &allow-other-keys)
   (declare (ignorable initargs))
