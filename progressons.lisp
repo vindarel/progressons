@@ -141,20 +141,19 @@ You should rather create a progressbar with this preference enabled:
 
   (defun step-length (obj)
     "Return the length (integer) of the new step string."
-    (if (> (step-width obj) 1)
-        (floor (step-width obj))     ;XXX: the floor looses some width
-        (progn
-          (unless sub-steps-for-one-progress
-            ;; if step-width is 80/1100, we'll increment a counter
-            ;; until it reaches 1100/80 = 13.75 rounded to 14, and we print one progress char.
-            (setf sub-steps-for-one-progress (round (/ 1 (step-width obj)))))
-          (if (>= sub-steps-counter sub-steps-for-one-progress)
-              (progn
-                (setf sub-steps-counter 0)
-                0) ;; (explicitely show we return 0)
-              (progn
-                (incf sub-steps-counter)
-                1)))))
+    (cond
+      ((> (step-width obj) 1)
+       (floor (step-width obj)))       ;XXX: the floor looses some width
+      ((not sub-steps-for-one-progress)
+       ;; if step-width is 80/1100, we'll increment a counter
+       ;; until it reaches 1100/80 = 13.75 rounded to 14, and we print one progress char.
+       (setf sub-steps-for-one-progress (round (/ 1 (step-width obj)))))
+      ((>= sub-steps-counter sub-steps-for-one-progress)
+       (setf sub-steps-counter 0)
+       0) ;; (explicitely show we return 0)
+      (t
+       (incf sub-steps-counter)
+       1)))
 
   (defmethod print-step-dumb ((obj progress) &key (stream t))
     "Print the progress step in a dumb terminal (like Emacs Slime).
