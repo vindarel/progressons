@@ -1,4 +1,4 @@
-(load "progressons.asd")
+(asdf:load-asd "progressons.asd")
 (ql:quickload '("progressons" "termp"))
 
 (in-package :progressons)
