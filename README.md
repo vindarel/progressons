@@ -9,6 +9,10 @@ Display a progress bar on one line.
 
 Status: usable for simple cases, adds too much overhead with large datasets, work in progress, the API might change.
 
+## Installation
+
+This library is on [Ultralisp](https://ultralisp.org/github).
+
 ## Usage
 
 Instantiate with `(progressbar data)` and call `(step!)` at each iteration.
