@@ -11,7 +11,9 @@ Status: usable for simple cases, adds too much overhead with large datasets, wor
 
 ## Installation
 
-This library is on [Ultralisp](https://ultralisp.org/github).
+This library is on [Ultralisp](https://ultralisp.org/github),
+
+and on Quicklisp since the 2024-10 release.
 
 ## Usage
 
