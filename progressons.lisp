@@ -11,11 +11,15 @@ Usage:
 (defparameter *progress* nil
   "the current progress bar.")
 
+(defvar *default-fill-character* #\FULL_BLOCK) ;; #\DARK_SHADE is another good option
+(defvar *default-background-character* #\LIGHT_SHADE)
+(defvar *default-width* 60)
+
 (defclass progress ()
   ((data :accessor progress-data
          :initarg :data)
    (width :accessor progress-width
-          :initform 80
+          :initform *default-width*
           :documentation "Screen width.")
    (step-width :accessor step-width
                :documentation "length (width, characters count) of each step to print.")
@@ -30,10 +34,10 @@ Usage:
    ;; Style, preferences.
    (fill-character :accessor progress-fill-character
                    :initarg :fill-character
-                   :initform #\FULL_BLOCK)
-   (default-fill-character :accessor default-fill-character
-     :allocation :class
-     :initform #\FULL_BLOCK)            ; = █
+                   :initform *default-fill-character*)
+   (background-character :accessor progress-background-character
+                         :initarg :background-character
+                         :initform *default-background-character*)
    (rainbow :accessor progress-rainbow
             :initarg :rainbow
             :initform nil
@@ -56,7 +60,7 @@ You should rather create a progressbar with this preference enabled:
     (t
      (error "The progress bar data of type ~a is not valid." (type-of (progress-data obj))))))
 
-(defun make-progress (data &key fill-character rainbow)
+(defun make-progress (data &key (fill-character *default-fill-character*) rainbow)
   "A more manual way to create a progressbar than `progressbar'.
 
   DATA can be a sequence or an integer."
@@ -68,9 +72,6 @@ You should rather create a progressbar with this preference enabled:
 (defmethod initialize-instance :after ((obj progress) &rest initargs &key &allow-other-keys)
   (declare (ignorable initargs))
   (with-slots (step-width percent-width fill-character) obj
-    (unless fill-character
-      ;; mmh not the best way to accept a key param on the constructor and ensure it's set here.
-      (setf fill-character (default-fill-character obj)))
     (setf step-width (/ (progress-width obj)
                         (progress-length obj)))
     (setf percent-width (/ 100
@@ -160,8 +161,7 @@ You should rather create a progressbar with this preference enabled:
 We can't erase a line (it prints the ^M character instead), so we can't update
 the percentage and the ratio of done items. We print progress indicators in a row,
 one after the other, and we print the percent in the end."
-    (let ((new-step "")
-          (new-step-length (step-length obj)))
+    (let ((new-step-length (step-length obj)))
       (if (> new-step-length 1)
           ;; easy case, the number of elements we have to draw the progress for
           ;; is smaller than 100, our line size.
@@ -222,7 +222,7 @@ one after the other, and we print the percent in the end."
                          :initial-element (progress-fill-character obj))
             (make-string (- (progress-width obj)
                             (current-width obj))
-                         :initial-element #\-)
+                         :initial-element (progress-background-character obj))
             (current-percent obj))
 
     (if (and (tty-p)
@@ -271,6 +271,6 @@ If `rainbow' is non-nil, print the steps in a random color."
                  :rainbow rainbow
                  :fill-character (if (stringp bar)
                                      (character bar)
-                                     bar))
+                                     (or bar *default-fill-character*)))
   (values (progress-data *progress*)
           *progress*))
