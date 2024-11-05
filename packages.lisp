@@ -2,4 +2,7 @@
   (:use :cl)
   (:export :progressbar
            :make-progress
-           :step!))
+           :step!
+           :*default-width*
+           :*default-fill-character*
+	   :*default-background-character*))
