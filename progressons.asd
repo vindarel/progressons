@@ -4,8 +4,7 @@
   :version "0.1"
   :author "vindarel"
   :license "MIT"
-  :depends-on ("alexandria"
-	       "str"
+  :depends-on ("str"
                "cl-ansi-text")
   :components ((:file "packages")
                (:file "utils")
