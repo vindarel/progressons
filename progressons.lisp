@@ -19,6 +19,7 @@ Usage:
   ((data :accessor progress-data
          :initarg :data)
    (width :accessor progress-width
+	  :initarg :width
           :initform *default-width*
           :documentation "Screen width.")
    (step-width :accessor step-width
@@ -60,14 +61,13 @@ You should rather create a progressbar with this preference enabled:
     (t
      (error "The progress bar data of type ~a is not valid." (type-of (progress-data obj))))))
 
-(defun make-progress (data &key (fill-character *default-fill-character*) rainbow)
+(defun make-progress (data &rest args)
   "A more manual way to create a progressbar than `progressbar'.
 
   DATA can be a sequence or an integer."
-  (setf *progress* (make-instance 'progress
-                                  :data data
-                                  :fill-character fill-character
-                                  :rainbow rainbow)))
+  (setf *progress* (apply #'make-instance 'progress
+                          :data data
+                          args)))
 
 (defmethod initialize-instance :after ((obj progress) &rest initargs &key &allow-other-keys)
   (declare (ignorable initargs))
@@ -261,16 +261,11 @@ one after the other, and we print the percent in the end."
 (defmethod reinit ((obj progress))
   (setf (steps-counter obj) 0))
 
-(defun progressbar (data &key bar rainbow)
+(defun progressbar (data &rest args)
   "Create a progress bar with this data. Return the data, so we can iterate over it.
 At the end of each iteration, you must call (step!) to print the progress.
 
 If `rainbow' is non-nil, print the steps in a random color."
   (setf *tty-p* (tty-p))
-  (make-progress data
-                 :rainbow rainbow
-                 :fill-character (if (stringp bar)
-                                     (character bar)
-                                     (or bar *default-fill-character*)))
-  (values (progress-data *progress*)
-          *progress*))
+  (apply #'make-progress data args)
+  (values (progress-data *progress*) *progress*))
