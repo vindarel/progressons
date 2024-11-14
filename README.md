@@ -1,3 +1,5 @@
+[![Quicklisp](http://api.quickdocs.org/badge/progressons.svg)](http://quickdocs.org/progressons/)
+
 # Progressons
 
 Display a progress bar on one line.
