@@ -11,8 +11,14 @@ Usage:
 (defparameter *progress* nil
   "the current progress bar.")
 
-(defvar *default-fill-character* #\FULL_BLOCK) ;; #\DARK_SHADE is another good option
-(defvar *default-background-character* #\LIGHT_SHADE)
+(defvar +full-block+ (code-char 9608)
+  "Character named #\FULL_BLOCK on SBCL: █")
+
+(defvar +light-shade+ (code-char 9617)
+  "Character named #\LIGHT_SHADE on SBCL: ░")
+
+(defvar *default-fill-character* +full-block+) ;; #\DARK_SHADE is another good option
+(defvar *default-background-character* +light-shade+)
 (defvar *default-width* 60)
 
 (defclass progress ()
@@ -118,7 +124,7 @@ You should rather create a progressbar with this preference enabled:
              (zerop (steps-counter obj)))
     (format stream "[0/~a]" (progress-length obj))))
 
-(defun make-string-with-random-color (width &key (initial-element #\FULL_BLOCK) print!)
+(defun make-string-with-random-color (width &key (initial-element +full-block+) print!)
   "Return a string with a random color (amongst the 8 basic ones)."
   (let* ((nb-colors 8)
          (colors cl-ansi-text::+cl-colors-basic-colors+)
